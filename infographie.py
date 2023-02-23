@@ -18,20 +18,22 @@ def adjust_text_size(text, font, max_width, font_file):
     # Effectue un retour à la ligne automatique si nécessaire
     text = wordWrap(text, max_width)
 
-    return font, text
+    return font
 
 
 # Ce code permet de Redimensionner et recadrer une image à la taille spécifiée tout en maintenant les proportions d'origine
 def resize_and_crop_image(image, size):
     ratio = image.width / image.height
-    new_size = (int(min(size[1]*ratio, size[0])), int(min(size[0]/ratio, size[1])))
+    #new_size = (int(min(size[1]*ratio, size[0])), int(min(size[0]/ratio, size[1])))
+    new_size = (int(min(size[0]/ratio, size[1])), int(min(size[1]*ratio, size[0])))
     image = image.resize(new_size)
     width, height = image.size
     left = (width - size[0]) // 2
     top = (height - size[1]) // 2
     right = left + size[0]
     bottom = top + size[1]
-    image = image.crop((left, top, min(right, width), min(bottom, height)))
+    #image = image.crop((left, top, min(right, width), min(bottom, height)))
+    image = image.crop((left, top, left + size[0], top + size[1]))
     return image
 
 def get_max_font_size(text, max_width, font_file):
@@ -45,8 +47,9 @@ def get_max_font_size(text, max_width, font_file):
 
 def wordWrap(text, max_width, line_spacing=1.0):
     lines = textwrap.wrap(text, width=max_width)
-    spacer_add = min(len(lines) * line_spacing, 0.5) * max_width
-    return spacer_add, "\n".join(lines)
+    #spacer_add = min(len(lines) * line_spacing, 0.5) * max_width
+    spacer_add = int(len(lines) * max(1, line_spacing))
+    return "\n".join(lines)
 
 
 # Dimensions de l'image
@@ -54,8 +57,8 @@ IMAGE_WIDTH = 2000
 IMAGE_HEIGHT = 1600
 
 # Dimensions de l'image centrale
-CENTER_IMAGE_WIDTH = 250
-CENTER_IMAGE_HEIGHT = 250
+CENTER_IMAGE_WIDTH = 300
+CENTER_IMAGE_HEIGHT = 300
 
 # Position de l'image centrale
 CENTER_IMAGE_X = IMAGE_WIDTH // 2 - CENTER_IMAGE_WIDTH // 2
@@ -63,7 +66,7 @@ CENTER_IMAGE_Y = IMAGE_HEIGHT // 2 - CENTER_IMAGE_HEIGHT // 2
 
 # typologie texte
 font_file = "DejaVuSansMono.ttf"
-max_width = 150
+max_width = 300
 
 palette_couleur = {'fonts':
                 {'h1': {'font': ImageFont.truetype("DejaVuSansMono.ttf", 40), 'color': (0, 0, 0)},
@@ -108,7 +111,7 @@ center_image = Image.new('RGB', (CENTER_IMAGE_WIDTH, CENTER_IMAGE_HEIGHT), palet
 center_image.paste(product_image, (0, 0))
 center_image_draw = ImageDraw.Draw(center_image)
 center_image_font = ImageFont.truetype('DejaVuSansMono.ttf', 40)
-center_image_draw.text((CENTER_IMAGE_WIDTH // 2, CENTER_IMAGE_HEIGHT + 20), product_name, fill=(0, 0, 0), font=center_image_font, anchor='ms')
+center_image_draw.text((CENTER_IMAGE_WIDTH // 2, CENTER_IMAGE_HEIGHT + 20), product_name, fill=palette_couleur['fonts']['h1']['color'], font=center_image_font, anchor='ms')
 
 # Création des étapes de cuisson
 cooking_steps_image = Image.new('RGB', (400, 400), palette_couleur['colors']['bg1'])
@@ -121,11 +124,11 @@ for step in cooking_steps:
     #print("cooking step phrase : ", step)
     font = ImageFont.truetype(font_file, font_size)
     cooking_steps_font = adjust_text_size(step, font, max_width, font_file)
-    cooking_steps_draw.text((10, step_y), step, fill=(0, 0, 0), font=cooking_steps_font, anchor='lm')
+    cooking_steps_draw.text((30, step_y), step, fill=palette_couleur['fonts']['h2']['color'], font=cooking_steps_font, anchor='lm')
     step_y += 30
 
 # Création des avantages pour la santé
-health_benefits_image = Image.new('RGB', (400, 400), palette_couleur['colors']['bg1'])
+health_benefits_image = Image.new('RGB', (750, 300), palette_couleur['colors']['bg1'])
 health_benefits_draw = ImageDraw.Draw(health_benefits_image)
 
 benefit_y = 50
@@ -134,25 +137,44 @@ for benefit, description in health_benefits.items():
     font_size = get_max_font_size(benefit, max_width, font_file)
     font = ImageFont.truetype(font_file, font_size)
     health_benefits_font = adjust_text_size(benefit, font, max_width, font_file)
-    health_benefits_draw.text((30, benefit_y), "• " + benefit, fill=(0, 0, 0), font=health_benefits_font, anchor="lt")
+    health_benefits_draw.text((30, benefit_y), "• " + benefit, fill=palette_couleur['fonts']['h1']['color'], font=health_benefits_font, anchor="lt")
     
     #health_benefits_font = adjust_text_size(description, ImageFont.truetype("DejaVuSansMono.ttf", 20), 200)
     health_benefits_font = adjust_text_size(benefit, font, max_width, font_file)
-    health_benefits_draw.text((200, benefit_y), description, fill=(0, 0, 0), font=health_benefits_font, anchor="lt")
+    health_benefits_draw.text((200, benefit_y), description, fill=palette_couleur['fonts']['h1']['color'], font=health_benefits_font, anchor="lt")
     benefit_y += 50
 
 # Création de l'image d'anecdotes
-anecdotes_image = Image.new('RGB', (800, 100), (255, 255, 255))
+anecdotes_image = Image.new('RGB', (100, 100), palette_couleur['colors']['bg1'])
 anecdotes_draw = ImageDraw.Draw(anecdotes_image)
 anecdotes_font = ImageFont.truetype('DejaVuSansMono.ttf', 16)
-anecdotes_draw.text((400, 50), "Anecdotes sur le fruit du dragon", fill=(0, 0, 0), font=anecdotes_font, anchor='mm')
+anecdotes_draw.text((400, 50), "Anecdotes sur le fruit du dragon", fill=palette_couleur['fonts']['h1']['color'], font=anecdotes_font, anchor='lt')
+
+# Création des anecdotes
+fun_facts_image = Image.new('RGB', (200, 100), palette_couleur['colors']['bg1'])
+fun_facts_draw = ImageDraw.Draw(fun_facts_image)
+fun_y = 50
+for fun in fun_facts:
+    font_size = get_max_font_size(fun, max_width, font_file)
+    font = ImageFont.truetype(font_file, font_size)
+    fun_facts_font = adjust_text_size(fun, font, max_width, font_file)
+    fun_facts_draw.text((10, fun_y), fun, fill=palette_couleur['fonts']['h1']['color'], font=fun_facts_font, anchor='lm')
+    fun_y += 30
+
 
 # Assemblage des différentes parties de l'infographie
-final_image = Image.new('RGB', (800, 800), (255, 255, 255))
-final_image.paste(product_image, (200, 100))
-final_image.paste(cooking_steps_image, (600, 100))
-final_image.paste(health_benefits_image, (200, 500))
-final_image.paste(anecdotes_image, (400, 700))
+final_image = Image.new('RGB', (800, 800), palette_couleur['colors']['bg2'])
+#final_image.paste(product_image, (200, 200))
+#final_image.paste(cooking_steps_image, (0, 300))
+#final_image.paste(health_benefits_image, (200, 500))
+#final_image.paste(anecdotes_image, (400, 700))
+#final_image.paste(fun_facts_image, (500, 700))
+
+final_image.paste(product_image, (300, 300))
+final_image.paste(cooking_steps_image, (0, 350))
+final_image.paste(health_benefits_image, (10, 10))
+final_image.paste(anecdotes_image, (600, 300))
+final_image.paste(fun_facts_image, (600, 350))
 
 # Enregistrement de l'image finale
 final_image.save('fruit_du_dragon.png')
